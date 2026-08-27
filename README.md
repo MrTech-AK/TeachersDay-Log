@@ -1,11 +1,32 @@
-<div align="center">
+# Teachers' Day 2026 — Fund Ledger
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A private internal financial tracking system for the school council.
 
-  <h1>Built with AI Studio</h2>
+## Phase 1 Completeness
+- [x] Project structure
+- [x] Express server
+- [x] DB Connection module
+- [x] SQL Schema & Migrations
+- [x] Authentication & Authorization foundations
+- [x] Security headers & rate limiting
+- [x] Heroku configurations
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Phase 2 Completeness (Collector UX & Contribution Collection)
+- [x] Collector Mobile-First Dashboard (HTML/CSS/JS)
+- [x] Secure API Routes (`/api/contributions`, `/api/contributors`)
+- [x] Server-side robust input validation
+- [x] Anti-duplicate submission mechanism
+- [x] Immutable transaction codes (e.g. `CON-000001`)
+- [x] Audit logs generation
+- [x] Session-derived collector identity (preventing spoofing)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Local Development
+1. Run `npm install`
+2. Set up Neon PostgreSQL and copy connection string to `.env` as `DATABASE_URL`.
+3. Set `SESSION_SECRET`.
+4. Run `npm run dev` for nodemon or `npm start`.
 
-</div>
+## Remaining Phases (To-Do)
+- API endpoint implementations for Contributions, Expenses, and Admin actions.
+- Frontend HTML/CSS interfaces for Collectors (Varuni, Sakshi) and Admin (Akshat).
+- Client-side fetch logic corresponding to the endpoints.

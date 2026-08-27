@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Collector Dashboard - Fund Ledger</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/collector.css">
+</head>
+<body>
+    <div class="app-layout">
+        <header class="app-header">
+            <div>
+                <h1 class="header-title">TEACHERS' DAY FUND</h1>
+                <div class="user-info">Logged in as: <span id="usernameDisplay">...</span></div>
+            </div>
+            <button id="logoutBtn" class="btn-text">Logout</button>
+        </header>
+
+        <main class="app-main">
+            <!-- Navigation -->
+            <div class="nav-grid">
+                <button id="navReceive" class="nav-btn active">+ RECEIVE MONEY</button>
+                <button id="navExpense" class="nav-btn" disabled>+ RECORD EXPENSE</button>
+                <button id="navActivity" class="nav-btn">MY ACTIVITY</button>
+            </div>
+
+            <!-- Views -->
+            <section id="viewReceive" class="view active">
+                <form id="contributionForm" class="form-container">
+                    <div class="form-group">
+                        <label for="contributor">Contributor</label>
+                        <select id="contributor" name="contributor" required>
+                            <option value="">Select contributor...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" id="amount" name="amount" min="1" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="payment_method" value="UPI" checked> UPI
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="payment_method" value="Cash"> Cash
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="upiRefGroup">
+                        <label for="upi_reference">UPI Reference</label>
+                        <input type="text" id="upi_reference" name="upi_reference" placeholder="e.g. 123456789012">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="note">Note (Optional)</label>
+                        <input type="text" id="note" name="note" placeholder="Add a short note">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary">RECORD CONTRIBUTION</button>
+                    <div id="formFeedback" class="feedback-msg"></div>
+                </form>
+            </section>
+
+            <section id="viewActivity" class="view">
+                <div class="activity-header">
+                    <h2>Recent Contributions</h2>
+                    <button id="refreshActivityBtn" class="btn-icon">↻</button>
+                </div>
+                <div id="activityList" class="activity-list">
+                    <!-- Loaded dynamically -->
+                    <div class="loading">Loading activity...</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    <script src="/js/collector.js"></script>
+</body>
+</html>
