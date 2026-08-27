@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Fund Ledger</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ADMIN</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <button id="navDashboard" class="nav-btn active">Overview</button>
+                <button id="navContributors" class="nav-btn">Contributors</button>
+                <button id="navContributions" class="nav-btn">Contributions</button>
+                <button id="navExpenses" class="nav-btn">Expenses</button>
+                <button id="navReconciliation" class="nav-btn">Reconciliation</button>
+                <button id="navReports" class="nav-btn">Reports</button>
+                <button id="navAudit" class="nav-btn">Audit Log</button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">Logged in as: <span id="usernameDisplay">...</span></div>
+                <button id="logoutBtn" class="btn-text">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- 1. Overview View -->
+            <section id="viewDashboard" class="view active">
+                <header class="content-header">
+                    <h1>Financial Overview</h1>
+                    <button class="btn-icon refresh-btn" data-target="dashboard">↻ Refresh</button>
+                </header>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Expected</h3>
+                        <div class="stat-value" id="statExpected">...</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Collected</h3>
+                        <div class="stat-value" id="statCollected">...</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Pending Collection</h3>
+                        <div class="stat-value" id="statPending">...</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Verified Expenses</h3>
+                        <div class="stat-value" id="statExpenses" style="color: #dc2626">...</div>
+                    </div>
+                    <div class="stat-card highlight">
+                        <h3>Expected Balance</h3>
+                        <div class="stat-value" id="statBalance">...</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-top: 1.5rem">
+                    <div class="stat-card">
+                        <h3>Pending Expenses</h3>
+                        <div class="stat-value" id="statPendingExp">...</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Rejected Expenses</h3>
+                        <div class="stat-value" id="statRejectedExp">...</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Collector Summary</h2>
+                </div>
+                <div class="collector-grid" id="collectorSummaryList">
+                    <div class="loading">Loading collectors...</div>
+                </div>
+            </section>
+
+            <!-- 2. Contributors View -->
+            <section id="viewContributors" class="view">
+                <header class="content-header">
+                    <h1>Manage Contributors</h1>
+                    <div>
+                        <button class="btn-primary" id="addContributorBtn">+ Add Contributor</button>
+                        <button class="btn-icon refresh-btn" data-target="contributors">↻</button>
+                    </div>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Section</th>
+                                <th>Expected (₹)</th>
+                                <th>Paid (₹)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contributorsTableBody">
+                            <tr><td colspan="7" class="loading">Loading contributors...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. Contributions View -->
+            <section id="viewContributions" class="view">
+                <header class="content-header">
+                    <h1>All Contributions</h1>
+                    <button class="btn-icon refresh-btn" data-target="contributions">↻</button>
+                </header>
+
+                <div class="filters">
+                    <input type="text" id="filterTx" placeholder="Search Trans. Code...">
+                    <input type="text" id="filterName" placeholder="Search Contributor...">
+                    <select id="filterCollector">
+                        <option value="">All Collectors</option>
+                    </select>
+                    <select id="filterMethod">
+                        <option value="">All Payment Methods</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Cash">Cash</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tx Code</th>
+                                <th>Date</th>
+                                <th>Contributor</th>
+                                <th>Amount (₹)</th>
+                                <th>Method</th>
+                                <th>Collector</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contributionsTableBody">
+                            <tr><td colspan="6" class="loading">Loading contributions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 4. Expenses View -->
+            <section id="viewExpenses" class="view">
+                <header class="content-header">
+                    <h1>Manage Expenses</h1>
+                    <button class="btn-icon refresh-btn" data-target="expenses">↻</button>
+                </header>
+
+                <div class="filters">
+                    <select id="filterExpStatus">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Date & Collector</th>
+                                <th>Category & Details</th>
+                                <th>Amount (₹)</th>
+                                <th>Status</th>
+                                <th>Receipt</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesTableBody">
+                            <tr><td colspan="7" class="loading">Loading expenses...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 5. Reconciliation View -->
+            <section id="viewReconciliation" class="view">
+                <header class="content-header">
+                    <h1>Reconciliation Checkpoints</h1>
+                    <button class="btn-primary" id="newReconBtn">+ New Checkpoint</button>
+                </header>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Admin</th>
+                                <th>Expected (₹)</th>
+                                <th>Reported (₹)</th>
+                                <th>Difference (₹)</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reconciliationTableBody">
+                            <tr><td colspan="7" class="loading">Loading records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. Audit Log View -->
+            <section id="viewAudit" class="view">
+                <header class="content-header">
+                    <h1>Audit Log</h1>
+                    <button class="btn-icon refresh-btn" data-target="audit">↻</button>
+                </header>
+                <div class="filters">
+                    <input type="text" id="filterAuditActor" placeholder="Search Actor...">
+                    <select id="filterAuditAction">
+                        <option value="">All Actions</option>
+                        <option value="login">Login</option>
+                        <option value="create">Create</option>
+                        <option value="update">Update</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select id="filterAuditEntity">
+                        <option value="">All Entities</option>
+                        <option value="auth">Auth</option>
+                        <option value="contribution">Contribution</option>
+                        <option value="contributor">Contributor</option>
+                        <option value="expense">Expense</option>
+                        <option value="reconciliation">Reconciliation</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Actor</th>
+                                <th>Action</th>
+                                <th>Entity</th>
+                                <th>Entity ID</th>
+                                <th>Metadata</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody">
+                            <tr><td colspan="6" class="loading">Loading audit logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- 7. Reports View -->
+            <section id="viewReports" class="view">
+                <header class="content-header">
+                    <h1>TEACHERS' DAY 2026 - FINANCIAL REPORT</h1>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-primary" id="exportCsvBtn">Export CSV</button>
+                        <button class="btn-text" id="printReportBtn">Print to PDF</button>
+                    </div>
+                </header>
+                
+                <div id="reportContent" class="report-container">
+                    <p class="loading">Loading report data...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="contributorModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Contributor</h2>
+            <form id="contributorForm">
+                <input type="hidden" id="contribId">
+                <div class="form-group">
+                    <label for="contribName">Name</label>
+                    <input type="text" id="contribName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contribClass">Class</label>
+                        <input type="text" id="contribClass" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contribSection">Section</label>
+                        <input type="text" id="contribSection" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="contribExpected">Expected Amount (₹)</label>
+                    <input type="number" id="contribExpected" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="contribActive" checked> Is Active
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" id="closeModalBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveContribBtn">Save</button>
+                </div>
+                <div id="modalError" class="error-msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <h2>Review Expense</h2>
+            <form id="expenseReviewForm">
+                <input type="hidden" id="reviewExpId">
+                
+                <div class="form-group">
+                    <label>Action</label>
+                    <select id="reviewAction" required>
+                        <option value="verified">Verify / Approve</option>
+                        <option value="rejected">Reject</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Verification Notes (Required for rejection)</label>
+                    <textarea id="reviewNotes" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #d4d4d8; border-radius: 4px;"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" id="closeExpModalBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveExpReviewBtn">Submit Review</button>
+                </div>
+                <div id="expModalError" class="error-msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="reconciliationModal" class="modal">
+        <div class="modal-content">
+            <h2>New Reconciliation Checkpoint</h2>
+            <form id="reconciliationForm">
+                <div class="form-group">
+                    <label>Reported/Actual Balance (₹)</label>
+                    <input type="number" id="reconActual" min="0" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="reconNotes" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #d4d4d8; border-radius: 4px;"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" id="closeReconModalBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveReconBtn">Save Checkpoint</button>
+                </div>
+                <div id="reconModalError" class="error-msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

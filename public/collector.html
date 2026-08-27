@@ -21,7 +21,7 @@
             <!-- Navigation -->
             <div class="nav-grid">
                 <button id="navReceive" class="nav-btn active">+ RECEIVE MONEY</button>
-                <button id="navExpense" class="nav-btn" disabled>+ RECORD EXPENSE</button>
+                <button id="navExpense" class="nav-btn">+ RECORD EXPENSE</button>
                 <button id="navActivity" class="nav-btn">MY ACTIVITY</button>
             </div>
 
@@ -64,6 +64,46 @@
 
                     <button type="submit" id="submitBtn" class="btn-primary">RECORD CONTRIBUTION</button>
                     <div id="formFeedback" class="feedback-msg"></div>
+                </form>
+            </section>
+
+            <section id="viewExpense" class="view">
+                <form id="expenseForm" class="form-container">
+                    <div class="form-group">
+                        <label for="expCategory">Category</label>
+                        <select id="expCategory" name="category" required>
+                            <option value="">Select category...</option>
+                            <option value="Decorations">Decorations</option>
+                            <option value="Food & Beverages">Food & Beverages</option>
+                            <option value="Gifts">Gifts</option>
+                            <option value="Logistics">Logistics</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expAmount">Amount (₹)</label>
+                        <input type="number" id="expAmount" name="amount" min="1" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expPaidBy">Paid By (Name)</label>
+                        <input type="text" id="expPaidBy" name="paid_by" required placeholder="Who paid for this?">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expDescription">Description</label>
+                        <input type="text" id="expDescription" name="description" required placeholder="Brief description of expense">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expReceipt">Receipt / Evidence</label>
+                        <input type="file" id="expReceipt" name="receipt" accept=".jpg,.jpeg,.png,.pdf" required>
+                        <small style="display:block;margin-top:0.25rem;color:#71717a">Max 5MB. JPG, PNG, or PDF.</small>
+                    </div>
+
+                    <button type="submit" id="expSubmitBtn" class="btn-primary">SUBMIT EXPENSE</button>
+                    <div id="expFormFeedback" class="feedback-msg"></div>
                 </form>
             </section>
 

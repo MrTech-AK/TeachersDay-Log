@@ -10,7 +10,7 @@ router.get('/my-activity', requireAuth, async (req, res) => {
         const query = `
             SELECT c.id, c.transaction_code, c.amount, c.payment_method, 
                    c.upi_reference, c.note, c.created_at,
-                   ct.name as contributor_name, ct.class_section
+                   ct.name as contributor_name, ct.class, ct.section
             FROM contributions c
             JOIN contributors ct ON c.contributor_id = ct.id
             WHERE c.collected_by = $1
@@ -61,8 +61,8 @@ router.post('/', requireAuth, async (req, res) => {
 
         await client.query('BEGIN');
 
-        // Check if contributor exists
-        const contribCheck = await client.query('SELECT id FROM contributors WHERE id = $1', [contributor_id]);
+        // Check if contributor exists and lock the row to prevent race conditions on duplicate check
+        const contribCheck = await client.query('SELECT id FROM contributors WHERE id = $1 FOR UPDATE', [contributor_id]);
         if (contribCheck.rows.length === 0) {
             await client.query('ROLLBACK');
             return res.status(400).json({ error: 'Invalid contributor' });
@@ -85,14 +85,14 @@ router.post('/', requireAuth, async (req, res) => {
         // Generate Transaction Code
         const seqRes = await client.query("SELECT nextval('contribution_seq')");
         const seqNum = seqRes.rows[0].nextval.padStart(6, '0');
-        const transaction_code = \`CON-\${seqNum}\`;
+        const transaction_code = `CON-${seqNum}`;
 
         // Insert contribution
-        const insertQuery = \`
+        const insertQuery = `
             INSERT INTO contributions (transaction_code, contributor_id, amount, collected_by, payment_method, upi_reference, note)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING id, transaction_code, created_at
-        \`;
+        `;
         
         const insertRes = await client.query(insertQuery, [
             transaction_code, contributor_id, numAmount, collected_by, payment_method, upi_reference, note
@@ -101,10 +101,10 @@ router.post('/', requireAuth, async (req, res) => {
         const newContribution = insertRes.rows[0];
 
         // Audit Log
-        await client.query(\`
+        await client.query(`
             INSERT INTO audit_logs (user_id, action, entity_type, entity_id, new_values, ip_address)
             VALUES ($1, 'create', 'contribution', $2, $3, $4)
-        \`, [
+        `, [
             collected_by, 
             newContribution.id, 
             JSON.stringify({ transaction_code, contributor_id, amount: numAmount, payment_method, upi_reference, note }),

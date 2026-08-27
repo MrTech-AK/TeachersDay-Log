@@ -26,7 +26,10 @@ CREATE INDEX "IDX_session_expire" ON "session" ("expire");
 CREATE TABLE IF NOT EXISTS contributors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
-    class_section VARCHAR(20) NOT NULL,
+    class VARCHAR(10) NOT NULL,
+    section VARCHAR(10) NOT NULL,
+    expected_amount NUMERIC(10, 2) DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -46,15 +49,22 @@ CREATE TABLE IF NOT EXISTS contributions (
 );
 
 -- Expenses table
+CREATE SEQUENCE IF NOT EXISTS expense_seq START 1;
+
 CREATE TABLE IF NOT EXISTS expenses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    submitted_by UUID NOT NULL REFERENCES users(id),
-    amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
+    expense_code VARCHAR(20) UNIQUE NOT NULL,
+    category VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    verified_by UUID REFERENCES users(id),
+    amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
+    paid_by VARCHAR(100) NOT NULL,
+    receipt_path VARCHAR(255),
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected')),
+    created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    verified_by UUID REFERENCES users(id),
+    verified_at TIMESTAMP WITH TIME ZONE,
+    verification_notes TEXT
 );
 
 -- Reconciliation records

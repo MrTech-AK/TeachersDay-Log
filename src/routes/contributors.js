@@ -8,9 +8,9 @@ const router = express.Router();
 router.get('/', requireAuth, async (req, res) => {
     try {
         const query = `
-            SELECT id, name, class_section 
+            SELECT id, name, class, section, expected_amount, is_active
             FROM contributors 
-            ORDER BY class_section, name ASC
+            ORDER BY class, section, name ASC
         `;
         const result = await db.query(query);
         res.json(result.rows);

@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             contributors.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
-                opt.textContent = \`\${c.class_section} - \${c.name}\`;
+                opt.textContent = `${c.class}-${c.section} - ${c.name}`;
                 contributorSelect.appendChild(opt);
             });
         } catch (e) {
@@ -54,16 +54,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadContributors();
 
     // 3. Navigation
+    const navExpense = document.getElementById('navExpense');
+    const viewExpense = document.getElementById('viewExpense');
+
     function switchView(view) {
         navReceive.classList.remove('active');
         navActivity.classList.remove('active');
+        navExpense.classList.remove('active');
         viewReceive.classList.remove('active');
         viewActivity.classList.remove('active');
+        viewExpense.classList.remove('active');
         formFeedback.className = 'feedback-msg';
 
         if (view === 'receive') {
             navReceive.classList.add('active');
             viewReceive.classList.add('active');
+        } else if (view === 'expense') {
+            navExpense.classList.add('active');
+            viewExpense.classList.add('active');
         } else if (view === 'activity') {
             navActivity.classList.add('active');
             viewActivity.classList.add('active');
@@ -72,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     navReceive.addEventListener('click', () => switchView('receive'));
+    navExpense.addEventListener('click', () => switchView('expense'));
     navActivity.addEventListener('click', () => switchView('activity'));
 
     // 4. Form Logic
@@ -91,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showFeedback(type, message) {
         formFeedback.textContent = message;
-        formFeedback.className = \`feedback-msg \${type}\`;
+        formFeedback.className = `feedback-msg ${type}`;
         if (type === 'success') {
             setTimeout(() => {
                 formFeedback.className = 'feedback-msg';
@@ -125,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!res.ok) {
                 showFeedback('error', data.error || 'Failed to record contribution');
             } else {
-                showFeedback('success', \`Success! Transaction ID: \${data.contribution.transaction_code}\`);
+                showFeedback('success', `Success! Transaction ID: ${data.contribution.transaction_code}`);
                 contributionForm.reset();
                 // Reset UPI field visibility
                 upiRefGroup.style.display = 'block';
@@ -140,41 +149,119 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // 4b. Expense Form Logic
+    const expenseForm = document.getElementById('expenseForm');
+    const expSubmitBtn = document.getElementById('expSubmitBtn');
+    const expFormFeedback = document.getElementById('expFormFeedback');
+
+    function showExpFeedback(type, message) {
+        expFormFeedback.textContent = message;
+        expFormFeedback.className = `feedback-msg ${type}`;
+        if (type === 'success') {
+            setTimeout(() => {
+                expFormFeedback.className = 'feedback-msg';
+            }, 5000);
+        }
+    }
+
+    expenseForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        expSubmitBtn.disabled = true;
+        expSubmitBtn.textContent = 'SUBMITTING...';
+        expFormFeedback.className = 'feedback-msg';
+
+        const formData = new FormData(expenseForm);
+
+        try {
+            const res = await fetch('/api/expenses', {
+                method: 'POST',
+                body: formData // FormData automatically sets multipart/form-data headers
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showExpFeedback('error', data.error || 'Failed to submit expense');
+            } else {
+                showExpFeedback('success', `Success! Expense ID: ${data.expense.expense_code}`);
+                expenseForm.reset();
+            }
+        } catch (err) {
+            console.error(err);
+            showExpFeedback('error', 'Network error. Please try again.');
+        } finally {
+            expSubmitBtn.disabled = false;
+            expSubmitBtn.textContent = 'SUBMIT EXPENSE';
+        }
+    });
+
     // 5. Activity Loading
     async function loadActivity() {
         activityList.innerHTML = '<div class="loading">Loading...</div>';
         try {
-            const res = await fetch('/api/contributions/my-activity');
-            const activities = await res.json();
+            const [contribRes, expRes] = await Promise.all([
+                fetch('/api/contributions/my-activity'),
+                fetch('/api/expenses/my-activity')
+            ]);
+            
+            const contributions = await contribRes.json();
+            const expenses = await expRes.json();
 
-            if (!res.ok) throw new Error(activities.error || 'Failed to load');
+            if (!contribRes.ok) throw new Error(contributions.error || 'Failed to load contributions');
+            if (!expRes.ok) throw new Error(expenses.error || 'Failed to load expenses');
+
+            // Combine and sort by date descending
+            const activities = [
+                ...contributions.map(c => ({ ...c, type: 'contribution' })),
+                ...expenses.map(e => ({ ...e, type: 'expense' }))
+            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             if (activities.length === 0) {
-                activityList.innerHTML = '<div>No contributions recorded yet.</div>';
+                activityList.innerHTML = '<div>No activity recorded yet.</div>';
                 return;
             }
 
             activityList.innerHTML = activities.map(act => {
                 const date = new Date(act.created_at).toLocaleString();
-                let refText = act.payment_method === 'UPI' ? \` • Ref: \${act.upi_reference}\` : '';
-                let noteHtml = act.note ? \`<div class="ac-note">\${act.note}</div>\` : '';
-                return \`
-                    <div class="activity-card">
-                        <div class="activity-card-header">
-                            <span class="ac-id">\${act.transaction_code}</span>
-                            <span class="ac-amount">₹\${Number(act.amount).toFixed(2)}</span>
+                
+                if (act.type === 'contribution') {
+                    let refText = act.payment_method === 'UPI' ? ` • Ref: ${act.upi_reference}` : '';
+                    let noteHtml = act.note ? `<div class="ac-note">${act.note}</div>` : '';
+                    return `
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="ac-id">${act.transaction_code}</span>
+                                <span class="ac-amount" style="color: #16a34a">+ ₹${Number(act.amount).toFixed(2)}</span>
+                            </div>
+                            <div class="ac-name">${act.contributor_name} (${act.class}-${act.section})</div>
+                            <div class="ac-details">
+                                ${date} • ${act.payment_method}${refText}
+                            </div>
+                            ${noteHtml}
                         </div>
-                        <div class="ac-name">\${act.contributor_name} (\${act.class_section})</div>
-                        <div class="ac-details">
-                            \${date} • \${act.payment_method}\${refText}
+                    `;
+                } else {
+                    let statusColor = act.status === 'verified' ? '#16a34a' : act.status === 'rejected' ? '#dc2626' : '#d97706';
+                    let receiptLink = act.receipt_path ? ` • <a href="/api/expenses/receipt/${act.receipt_path}" target="_blank">View Receipt</a>` : '';
+                    let notes = act.verification_notes ? `<div class="ac-note" style="color:#b91c1c">Note: ${act.verification_notes}</div>` : '';
+                    return `
+                        <div class="activity-card">
+                            <div class="activity-card-header">
+                                <span class="ac-id">${act.expense_code}</span>
+                                <span class="ac-amount" style="color: #dc2626">- ₹${Number(act.amount).toFixed(2)}</span>
+                            </div>
+                            <div class="ac-name">${act.category}: ${act.description} (Paid by ${act.paid_by})</div>
+                            <div class="ac-details">
+                                ${date} • <span style="font-weight:bold;color:${statusColor}">${act.status.toUpperCase()}</span>${receiptLink}
+                            </div>
+                            ${notes}
                         </div>
-                        \${noteHtml}
-                    </div>
-                \`;
+                    `;
+                }
             }).join('');
         } catch (err) {
             console.error(err);
-            activityList.innerHTML = \`<div class="error-msg">Failed to load activity.</div>\`;
+            activityList.innerHTML = `<div class="error-msg">Failed to load activity.</div>`;
         }
     }
 
